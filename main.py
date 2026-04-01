@@ -2,53 +2,52 @@ import lightkurve as lk
 import matplotlib.pyplot as plt
 
 def main():
-    print("Searching for Kepler-186 data...")
-    search_result = lk.search_lightcurve('Kepler-186', author='Kepler')
+    print("fetching kepler-186 data...")
+    res = lk.search_lightcurve('Kepler-186', author='Kepler')
     
-    print(f"Downloading {len(search_result)} datasets... (Using cached files)")
-    lc_collection = search_result.download_all()
+    print(f"downloading {len(res)} datasets (should be fast if cached)...")
+    lcs = res.download_all()
     
-    print("Cleaning and flattening data (Optimized)...")
-    clean_lcs = []
-    for lc in lc_collection:
-        # Removing outliers deletes cosmic ray glitches
-        # Flattening each quarter individually keeps the computer from freezing
-        clean_lc = lc.remove_nans().remove_outliers().flatten(window_length=401)
-        clean_lcs.append(clean_lc)
+    print("cleaning and flattening (this takes a sec)...")
+    clean_list = []
+    for lc in lcs:
+        # Removing nans, outliers, and flatten the wiggles (Otherwise too much data and the code crashes)
+        clean = lc.remove_nans().remove_outliers().flatten(window_length=401)
+        clean_list.append(clean)
         
-    print("Stitching the clean datasets together...")
-    flat_lc = lk.LightCurveCollection(clean_lcs).stitch()
+    print("stitching it all together...")
+    stitched = lk.LightCurveCollection(clean_list).stitch()
     
-    # Kepler-186f Parameters
-    planet_period = 129.944  
-    transit_epoch = 172.15  # Perfectly centers the transit dip at X=0
+    # kepler 186f parameters
+    p = 129.944  
+    epoch = 172.15  # modified offset to center the dip perfectly at 0, we first ran without any such parameter observed where the dip was seen and have modified it.
+    folded = stitched.fold(period=p, epoch_time=epoch)
     
-    print("Folding light curve...")
-    folded_lc = flat_lc.fold(period=planet_period, epoch_time=transit_epoch)
+    # bin down the noise. 0.015 days is about 21 mins, we took 0.1 before but now as we are taking a shorter interval of just 9 hours we have reduced the size of the bin so we can get enough bin points to see a clear pattern.
+    binned = folded.bin(time_bin_size=0.015) 
     
-    print("Binning data to highlight the tiny transit dip...")
-    # 0.015 day bin size (~21 minutes) provides great resolution for a 2.4-hour transit
-    binned_lc = folded_lc.bin(time_bin_size=0.015) 
-    
-    # Plot the result
+    # setting up the plot
     fig, ax = plt.subplots(figsize=(10, 5))
     
-    # Plot raw data faintly in the background
-    folded_lc.scatter(ax=ax, color='grey', alpha=0.1, label='Unbinned Data')
+    # plot raw data faintly in the background using 90% transperency
+    folded.scatter(ax=ax, color='grey', alpha=0.1, label='raw data')
     
-    # Plot clean, binned data over the top
-    binned_lc.scatter(ax=ax, color='blue', alpha=0.8, s=20, label='Binned Data (Kepler-186f)')
+    # plot clean, binned data over the top much darker, 20% transparency
+    binned.scatter(ax=ax, color='blue', alpha=0.8, s=20, label='binned')
     
-    # The "Zoom Lens": Focusing tightly on the transit event
-    ax.set_xlim(-0.2, 0.2)     # Zoom in to roughly 5 hours before and after the transit
-    ax.set_ylim(0.995, 1.005)  # Zoom in vertically to see the 0.04% depth
+    # zoom camera right into the transit window, we had taken the standard ranges of -1 to 1 before however the x axis was too big in this and we were unable to see any clear pattern.
+    ax.set_xlim(-0.2, 0.2)     
+    ax.set_ylim(0.995, 1.005)  
     
-    ax.set_title('Exoplanet Transit Signal: Kepler-186f (Earth-Sized)')
-    ax.legend()
+    ax.set_title('Kepler-186f Transit Fit')
+    ax.legend(loc='upper right')
     
-    print("Success! Saving plot to your folder...")
+    # plt.show() # my cpu crashes or takes too long, saving it instead, will be displayed in the file location and i have uploaded all results to READ ME
+    
+    print("saving plot...")
     plt.savefig('kepler186f_transit_zoomed.png', dpi=300, bbox_inches='tight')
-    print("Done! Look for 'kepler186f_transit_zoomed.png' in your project folder.")
+    print("done!")
+    #thank you, we can see a very small dip, or tending to it between 0 and -0.01, despite all this we do not have a perfect graph and values as our estimation technique 'savitzky-golay smoothneing' is not exact, actual scientits used much more complicated gaussian and other smoothneing and estimation techniques.
 
 if __name__ == "__main__":
     main()
