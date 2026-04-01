@@ -20,14 +20,14 @@ def main():
     print("cleaning and flattening (outlier filter disabled!)...")
     clean_list = []
     for lc in lcs:
-        # We KEEP flatten so the baseline stays at 1.0, but SKIP remove_outliers
+        # We flatten so the baseline stays at 1.0, but do not remove_outliers as we had done for kepler 186f as the dip ~1.5% will be counted as an outlier where it is our planet itself and we will elminate our planet as an outlier ( I did this and was struck for an hour)
         clean = lc.remove_nans().flatten(window_length=401)
         clean_list.append(clean)
         
     stitched = lk.LightCurveCollection(clean_list).stitch()
     
     p = 2.470613  
-    # THE FIX: We stop guessing the epoch! Let Lightkurve fold it naturally.
+    # We are not able to set epoch well and get the desired results so we let the code handle this for us.
     folded = stitched.fold(period=p)
     binned = folded.bin(time_bin_size=0.005) 
     
@@ -37,7 +37,7 @@ def main():
     binned_times = binned.time.value[valid_indices]
     binned_fluxes = binned.flux.value[valid_indices]
     
-    # THE GENIUS FIX: Find the absolute deepest dip in the entire orbit!
+    # Find the absolute deepest dip in the entire orbit and make this the centre point forour graph.
     deepest_index = np.argmin(binned_fluxes)
     detected_t0 = binned_times[deepest_index]
     
@@ -45,7 +45,7 @@ def main():
     
     print("running scipy curve fit around the detected planet...")
     
-    # Dynamically zoom the math mask to wherever the planet actually is
+    #zoom the math mask to wherever the planet actually is so we get clear data.
     mask = (binned_times > detected_t0 - 0.1) & (binned_times < detected_t0 + 0.1)
     x = binned_times[mask]
     y = binned_fluxes[mask]
@@ -53,7 +53,7 @@ def main():
     # Initial guesses using the dynamically detected center
     guess = [0.015, detected_t0, 1.0]
     
-    # Let SciPy lock in on the exact bottom
+    # Now we finally let SciPy lock in on the exact bottom
     popt, _ = curve_fit(box_model, x, y, p0=guess, bounds=([0.005, detected_t0 - 0.05, 0.99], [0.05, detected_t0 + 0.05, 1.01]))
     calc_depth, calc_t0, calc_base = popt
     
@@ -61,7 +61,7 @@ def main():
     planet_r = star_r * np.sqrt(calc_depth)
     
     print("\n" + "="*30)
-    print("🪐 PLANET DETECTION RESULTS")
+    print("PLANET DETECTION RESULTS")
     print("="*30)
     print(f"transit depth: {calc_depth*100:.2f}%")
     print(f"center offset: {calc_t0:+.4f} days")
@@ -70,7 +70,7 @@ def main():
     print(f"planet radius: {planet_r / 11.2:.2f} Jupiter radii")
     print("="*30 + "\n")
 
-    # --- PLOT THE RESULTS ---
+    # PLOTTING THE RESULTS
     fig, ax = plt.subplots(figsize=(10, 5))
     
     folded.scatter(ax=ax, color='grey', alpha=0.1, label='raw data')
@@ -81,7 +81,7 @@ def main():
     sy = box_model(sx, calc_depth, calc_t0, calc_base)
     ax.plot(sx, sy, color='red', lw=2, label=rf'scipy fit ($R_p$ = {planet_r:.2f} $R_\oplus$)')
     
-    # Dynamically center the camera on the planet!
+    # Dynamically center the camera on the planet using our determined deepest dip as the centre.
     ax.set_xlim(calc_t0 - 0.15, calc_t0 + 0.15)     
     ax.set_ylim(0.97, 1.01)  
     
@@ -94,3 +94,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+#thank you, after a lot of errors and struggles we finally get a perfect planetary detection result, they can be found in READ ME or can be run on your own.
