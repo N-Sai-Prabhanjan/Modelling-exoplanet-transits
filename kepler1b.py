@@ -11,7 +11,7 @@ def box_model(t, depth, t0, baseline):
     return flux
 
 def main():
-    print("fetching kepler-1 data (TrES-2b Hot Jupiter)...")
+    print("fetching kepler-1 data (Hot Jupiter)...")
     res = lk.search_lightcurve('Kepler-1', author='Kepler')
     
     print(f"downloading {len(res)} datasets...")
