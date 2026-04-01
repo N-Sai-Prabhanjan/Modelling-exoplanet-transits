@@ -1,2 +1,40 @@
 # Modelling-exoplanet-transits
 Simulating and modelling exoplanet transits using kepler data
+# Exoplanet Transit Modelling using Kepler Data 
+(We are using data for kepler 186f as this was the first interesting exoplanet i learned about and in 4th grade me and my friends thought to design a sspaceship to go there.. huh, kids)
+
+## Overview
+This project analyzes real photometric data from NASA's Kepler mission to model exoplanet transit signals and estimate planetary parameters.
+
+## Objective
+To detect and model the dip in stellar brightness caused by an exoplanet passing in front of its host star, and extract key parameters such as transit depth and duration.
+
+## Methodology
+* **Data Acquisition:** Downloaded Kepler light curve data using `Lightkurve`.
+* **Preprocessing:** Removed noise and long-term trends (flattening the light curve).
+* **Modeling:** Implemented a transit model.
+* **Parameter Estimation:** Used nonlinear curve fitting (`SciPy`) to estimate parameters.
+
+## Results
+* Successfully detected the transit signal.
+* Estimated key parameters:
+  * Transit depth
+  * Transit duration
+  * Mid-transit time
+
+*(Tip: You can add an image of your final Matplotlib light curve plot here later!)*
+
+## Tools Used
+* **Language:** Python
+* **Libraries:** `NumPy`, `SciPy`, `Matplotlib`, `Lightkurve`
+
+## Future Improvements
+* Include limb darkening models for higher accuracy.
+* Use Markov Chain Monte Carlo (MCMC) for robust parameter estimation.
+* Analyze multi-planet systems.
+
+---
+## How to Run
+1. Clone the repository: `git clone https://github.com/N-Sai-Prabhanjan/Modelling-exoplanet-transits.git`
+2. Install the required dependencies: `pip install -r requirements.txt`
+3. Run the main script: `python main.py`
