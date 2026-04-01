@@ -73,7 +73,7 @@ def main():
     sy = box_model(sx, calc_depth, calc_t0, calc_base)
     ax.plot(sx, sy, color='red', lw=2, label=rf'scipy fit ($R_p$ = {planet_r:.2f} $R_\oplus$)')
     
-    ax.set_xlim(-0.1, 0.1)     
+    ax.set_xlim(-1.2, 1.2)     
     # We HAVE to change the Y-axis bounds, or the 1.5% dip will go off the screen!
     ax.set_ylim(0.97, 1.01)  
     ax.set_title('Kepler-1b (TrES-2b) Hot Jupiter Transit')
