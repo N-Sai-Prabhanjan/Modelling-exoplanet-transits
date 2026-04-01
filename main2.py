@@ -3,22 +3,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 
-def box_model(t, depth, duration, t0):
-    # basic u-shape array to simulate the transit dip
-    flux = np.ones_like(t)
+def box_model(t, depth, duration, t0, baseline):
+    # basic u-shape array to simulate the transit dip, now with an adjustable baseline!
+    flux = np.full_like(t, baseline, dtype=float)
     in_transit = np.abs(t - t0) < (duration / 2.0)
-    flux[in_transit] = 1.0 - depth
+    flux[in_transit] -= depth
     return flux
 
 def main():
     print("fetching kepler-186 data...")
     res = lk.search_lightcurve('Kepler-186', author='Kepler')
+    
+    print(f"downloading {len(res)} datasets (should be fast if cached)...")
     lcs = res.download_all()
     
     print("cleaning and flattening (this takes a sec)...")
     clean_list = []
     for lc in lcs:
-        # scrub nans, outliers, and flatten the wiggles
+        # scrub nans, outliers, and flatten the wiggles so we don't crash
         clean = lc.remove_nans().remove_outliers().flatten(window_length=401)
         clean_list.append(clean)
         
@@ -31,23 +33,23 @@ def main():
     
     folded = stitched.fold(period=p, epoch_time=epoch)
     
-    # bin down the noise. 0.015 days is about 21 minutes
+    # bin down the noise. 0.015 days is about 21 mins
     binned = folded.bin(time_bin_size=0.015) 
     
     print("running scipy curve fit...")
     
-    # zooming the math in on the actual transit window so scipy doesn't freak out
+    # zooming the math in on the actual transit window
     mask = (binned.time.value > -0.2) & (binned.time.value < 0.2) & ~np.isnan(binned.flux.value)
     
     x = binned.time.value[mask]
     y = binned.flux.value[mask]
     
-    # initial guesses: depth, duration, center time
-    guess = [0.0004, 0.1, 0.0]
+    # initial guesses: depth, duration, center time, baseline
+    guess = [0.0004, 0.1, 0.0, 1.0]
     
-    # put bounds on it so the algorithm doesn't give us physically impossible answers
-    popt, _ = curve_fit(box_model, x, y, p0=guess, bounds=([0, 0.01, -0.1], [0.01, 0.5, 0.1]))
-    calc_depth, calc_dur, calc_t0 = popt
+    # bounds: (lower bounds), (upper bounds). Let scipy shift the baseline slightly!
+    popt, _ = curve_fit(box_model, x, y, p0=guess, bounds=([0, 0.01, -0.2, 0.99], [0.01, 0.5, 0.2, 1.01]))
+    calc_depth, calc_dur, calc_t0, calc_base = popt
     
     # R_planet = R_star * sqrt(depth)
     # kepler 186 radius is 0.472 solar radii. (1 solar radius = 109.2 earth radii)
@@ -63,21 +65,23 @@ def main():
     # set up the plot
     fig, ax = plt.subplots(figsize=(10, 5))
     
-    # plot the raw and binned data
+    # plot raw data faintly in the background
     folded.scatter(ax=ax, color='grey', alpha=0.1, label='raw data')
+    
+    # plot clean, binned data over the top
     binned.scatter(ax=ax, color='blue', alpha=0.8, s=20, label='binned')
     
-    # draw the red model line
+    # draw the red model line (passing our new calculated baseline to it)
     sx = np.linspace(-0.2, 0.2, 1000)
-    sy = box_model(sx, calc_depth, calc_dur, calc_t0)
+    sy = box_model(sx, calc_depth, calc_dur, calc_t0, calc_base)
     ax.plot(sx, sy, color='red', lw=2, label=rf'model fit ($R_p$ = {planet_r:.2f} $R_\oplus$)')
     
-    # zoom camera
+    # zoom camera right into the transit window
     ax.set_xlim(-0.2, 0.2)     
     ax.set_ylim(0.995, 1.005)  
     
     ax.set_title('Kepler-186f Transit Fit')
-    ax.legend(loc='upper right') 
+    ax.legend(loc='upper right')
     
     # plt.show() # usually freezes up my machine, saving it instead
     
