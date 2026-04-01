@@ -1,10 +1,10 @@
 # Modelling-exoplanet-transits
 Simulating and modelling exoplanet transits using kepler data
 # Exoplanet Transit Modelling using Kepler Data 
-(We are using data for kepler 186f as this was the first interesting exoplanet i learned about and in 4th grade me and my friends thought to design a sspaceship to go there.. huh, kids)
+(We are using data for kepler 186f as this was the first interesting exoplanet i learned about and in 4th grade me and my friends thought to design a spaceship to go there.. huh, kids)
 
 ## Overview
-This project analyzes real photometric data from NASA's Kepler mission to model exoplanet transit signals and estimate planetary parameters.
+This project analyzes real photometric data from NASA's Kepler mission to model exoplanet transit signals and estimate planetary parameters. (First we detect the star, then we use SciPy to make a box model and find transit depth, radius and duration of transit)
 
 ## Objective
 To detect and model the dip in stellar brightness caused by an exoplanet passing in front of its host star, and extract key parameters such as transit depth and duration.
@@ -22,7 +22,6 @@ To detect and model the dip in stellar brightness caused by an exoplanet passing
   * Transit duration
   * Mid-transit time
 
-*(Tip: You can add an image of your final Matplotlib light curve plot here later!)*
 
 ## Tools Used
 * **Language:** Python
