@@ -16,13 +16,14 @@ def main():
     print("fetching kepler-1 data (TrES-2b Hot Jupiter)...")
     res = lk.search_lightcurve('Kepler-1', author='Kepler')
     
-    print(f"downloading {len(res)} datasets...")
+    print(f"downloading {len(res)} datasets (should be fast if cached)...")
     lcs = res.download_all()
     
-    print("cleaning and flattening...")
+    print("cleaning and flattening (outlier filter disabled!)...")
     clean_list = []
     for lc in lcs:
-        clean = lc.remove_nans().remove_outliers().flatten(window_length=401)
+        # THE FIX: No .remove_outliers() here, so we don't delete the planet!
+        clean = lc.remove_nans().flatten(window_length=401)
         clean_list.append(clean)
         
     print("stitching it all together...")
@@ -30,7 +31,7 @@ def main():
     
     # Kepler-1b exact NASA parameters
     p = 2.470613  
-    epoch = 120.9933  # The true epoch that centers the dip!
+    epoch = 120.9933  # The true epoch that centers the massive dip
     
     folded = stitched.fold(period=p, epoch_time=epoch)
     
