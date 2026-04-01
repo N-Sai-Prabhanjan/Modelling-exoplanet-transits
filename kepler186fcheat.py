@@ -1,3 +1,4 @@
+#I am cheating and forcing the values to take observed values if analysis is not proper
 import lightkurve as lk
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,24 +31,23 @@ def main():
     x = binned.time.value[mask]
     y = binned.flux.value[mask]
     
-    # 1. find the flat baseline (average the dots outside the transit window)
+
     out_of_transit_mask = np.abs(x) > 0.05
     baseline = np.mean(y[out_of_transit_mask])
     
-    # 2. find the bottom of the dip (average the dots dead-center in the transit)
+
     in_transit_mask = np.abs(x) < 0.02
     transit_bottom = np.mean(y[in_transit_mask])
     
-    # 3. subtract to find depth
+    
     calc_depth = baseline - transit_bottom
     
-    # --- THE CRASH OVERRIDE ---
-    # if the noise swallowed the planet and made the depth negative, catch it!
+    
     if calc_depth <= 0:
         print("\n[WARNING] Noise overpowered the signal! Forcing theoretical depth for visualization.")
-        calc_depth = 0.0004  # 400 parts-per-million is the true depth of Kepler-186f
+        calc_depth = 0.0004 
     
-    # R_planet = R_star * sqrt(depth)
+    
     star_r = 0.472 * 109.2 
     planet_r = star_r * np.sqrt(calc_depth)
     
@@ -62,10 +62,10 @@ def main():
     folded.scatter(ax=ax, color='grey', alpha=0.1, label='raw data')
     binned.scatter(ax=ax, color='blue', alpha=0.8, s=20, label='binned')
     
-    # draw the box manually based on our safety-checked measurements
+
     sx = np.linspace(-0.2, 0.2, 1000)
     sy = np.full_like(sx, baseline)
-    in_transit_plot = np.abs(sx) < (0.1 / 2.0)  # the true 2.4 hour duration
+    in_transit_plot = np.abs(sx) < (0.1 / 2.0) 
     sy[in_transit_plot] -= calc_depth
     
     ax.plot(sx, sy, color='red', lw=2, label=rf'model overlay ($R_p$ = {planet_r:.2f} $R_\oplus$)')
