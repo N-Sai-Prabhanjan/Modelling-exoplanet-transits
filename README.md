@@ -18,7 +18,7 @@ To detect and model the dip in stellar brightness caused by an exoplanet passing
 ## Results
 * Successfully detected the transit signal.
 * Estimated key parameters:
-  * Transit depth
+  * Transit depth - Radius of Planet
   * Transit duration
   * Mid-transit time
 
