@@ -28,12 +28,7 @@ To detect and model the dip in stellar brightness caused by an exoplanet passing
   <img width="2625" height="1407" alt="kepler186f_transit" src="https://github.com/user-attachments/assets/2e00d424-59ea-4c0c-b6e2-309d061bbb90" />
   <img width="2638" height="1407" alt="kepler186f_transit_zoomed" src="https://github.com/user-attachments/assets/58ad019c-600a-460f-9e2c-bc48b7fc447d" />
   <img width="491" height="163" alt="image" src="https://github.com/user-attachments/assets/7cc197ae-5d68-4a8d-92ca-3876756957b8" />
-  <img width="2621" height="1407" alt="kepler1b_model_fit" src="https://github.com/user-attachments/assets/0b5b6024-595e-462f-9c2d-031cd62fc7af" />
-
-  
-
-
-
+  <img width="2368" height="1262" alt="image" src="https://github.com/user-attachments/assets/6cf597d7-c707-4c08-9481-8dc9c4fc243e" />
 
 ## Tools Used
 * **Language:** Python
