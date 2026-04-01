@@ -4,7 +4,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 # We removed duration and t0 from the guessing game!
-# Step-functions (sharp boxes) break calculus-based optimizers.
+# Step-functions (sharp boxes) break calculus-based optimizers, so we simplify.
 def box_model(t, depth, baseline):
     flux = np.full_like(t, baseline, dtype=float)
     
@@ -41,11 +41,12 @@ def main():
     x = binned.time.value[mask]
     y = binned.flux.value[mask]
     
-    # initial guesses: just depth and baseline now!
+    # initial guesses: just depth and baseline now
     guess = [0.0004, 1.0]
     
-    # Because it is a simple 2-variable fit now, we don't even need bounds
-    popt, _ = curve_fit(box_model, x, y, p0=guess)
+    # THE FIX: We added bounds back in to prevent negative depth guesses (NaN errors)
+    # bounds=([lower_depth, lower_baseline], [upper_depth, upper_baseline])
+    popt, _ = curve_fit(box_model, x, y, p0=guess, bounds=([0.0, 0.99], [0.01, 1.01]))
     calc_depth, calc_base = popt
     
     # R_planet = R_star * sqrt(depth)
